@@ -15,13 +15,30 @@ import (
 )
 
 func main() {
-	myClient := client.GetClient("credentials.json", people.ContactsReadonlyScope)
+	card, err := readVcardFromFile("/Users/adriaan/workspace/google-vcard-import/example.vcf")
+	fmt.Printf("card: %v\n", card)
+	if err != nil {
+		log.Fatal(err)
+	}	
+	contact := parseCardToPerson(card)
+
+	
+
+	fmt.Printf("contact: %v\n", contact)
+
+	myClient := client.GetClient("credentials.json", people.ContactsScope)
 
 	peopleService, err := people.NewService(context.Background(), option.WithHTTPClient(myClient))
 	if err != nil {
 		log.Fatalf("Unable to create people Client %v", err)
 	}
 
+	results3, err := peopleService.People.CreateContact(&contact).Do()
+	if err != nil {
+		log.Fatalf("Unable to create contact. %v", err)
+	}
+	fmt.Printf("result.HTTPStatusCode: %v\n", results3.HTTPStatusCode)
+	
 	results, err := peopleService.People.Connections.List("people/me").PageSize(10).
 		PersonFields("names,emailAddresses").Do()
 	if err != nil {
