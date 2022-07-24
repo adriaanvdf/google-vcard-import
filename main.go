@@ -41,6 +41,37 @@ func main() {
 	}
 }
 
+func parseCardToPerson(card vcard.Card) people.Person {
+	var formattedName = card.PreferredValue(vcard.FieldFormattedName)
+	var bday = card.PreferredValue(vcard.FieldBirthday)
+	t, err := time.Parse("20060102", bday)
+	if err != nil {
+		t, err = time.Parse("2006-01-02", bday)
+	}
+	if err != nil {
+		t, err = time.Parse("01-02", bday)
+	}
+	if err != nil {
+		log.Fatalf("Unable to parse birthday date. %v", err)
+	}
+
+	var birthDayDate = people.Date{Year: int64(t.Year()), Month: int64(t.Month()), Day: int64(t.Day())}
+	var gender = card.PreferredValue(vcard.FieldGender)
+	var org = card.PreferredValue(vcard.FieldOrganization)
+
+	contact := people.Person{
+		Birthdays: []*people.Birthday{{Date: &birthDayDate}},
+		Genders:   []*people.Gender{{Value: gender}},
+		Names: []*people.Name{{
+			FamilyName:  card.Name().FamilyName,
+			GivenName:   card.Name().GivenName,
+			DisplayName: formattedName,
+		}},
+		Organizations: []*people.Organization{{Name: org}},
+	}
+	return contact
+}
+
 func readVcardFromFile(filePath string) (vcard.Card, error) {
 	var card vcard.Card
 	file, err := os.Open(filePath)
