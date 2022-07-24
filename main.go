@@ -4,7 +4,10 @@ import (
         "context"
 	"fmt"
 	"log"
+	"os"
+	"time"
 
+	"github.com/emersion/go-vcard"
 	"google.golang.org/api/option"
 	"google.golang.org/api/people/v1"
 
@@ -34,6 +37,16 @@ func main() {
 			}
 		}
 	} else {
-		fmt.Print("No connections found.")
+		fmt.Print("No connections found.\n")
 	}
+}
+
+func readVcardFromFile(filePath string) (vcard.Card, error) {
+	var card vcard.Card
+	file, err := os.Open(filePath)
+	if err == nil {
+		card, err = vcard.NewDecoder(file).Decode()
+	}
+	defer file.Close()
+	return card, err
 }
