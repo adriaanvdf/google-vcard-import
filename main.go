@@ -38,15 +38,33 @@ func main() {
 		log.Fatalf("Unable to create contact. %v", err)
 	}
 	fmt.Printf("result.HTTPStatusCode: %v\n", results3.HTTPStatusCode)
-	
-	results, err := peopleService.People.Connections.List("people/me").PageSize(10).
+	x := people.CreateContactGroupRequest{ContactGroup: &people.ContactGroup{Name: "Created: " + time.Now().Format(time.Kitchen)}}
+	results1, err := peopleService.ContactGroups.Create(&x).Do()
+	if err != nil {
+		log.Fatalf("Unable to create contacts label. %v", err)
+	}
+	fmt.Printf("results1: %v\n", results1)
+
+	y := people.ModifyContactGroupMembersRequest{
+		ResourceNamesToAdd:    []string{results3.ResourceName},
+		ResourceNamesToRemove: []string{},
+		ForceSendFields:       []string{},
+		NullFields:            []string{},
+	}
+	results2, err := peopleService.ContactGroups.Members.Modify(results1.ResourceName, &y).Do()
+	if err != nil {
+		log.Fatalf("Unable to apply label to contacts. %v", err)
+	}
+	fmt.Printf("results1: %v\n", results2)
+
+	results4, err := peopleService.People.Connections.List("people/me").PageSize(10).
 		PersonFields("names,emailAddresses").Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve people. %v", err)
 	}
-	if len(results.Connections) > 0 {
+	if len(results4.Connections) > 0 {
 		fmt.Print("List 10 connection names:\n")
-		for _, c := range results.Connections {
+		for _, c := range results4.Connections {
 			names := c.Names
 			if len(names) > 0 {
 				name := names[0].DisplayName
