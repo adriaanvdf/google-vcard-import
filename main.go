@@ -57,14 +57,15 @@ func main() {
 	}
 	fmt.Printf("results1: %v\n", results2)
 
-	results4, err := peopleService.People.Connections.List("people/me").PageSize(10).
+func listConnections(peopleService *people.Service) ([]*people.Person, error) {
+	results, err := peopleService.People.Connections.List("people/me").PageSize(10).
 		PersonFields("names,emailAddresses").Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve people. %v", err)
 	}
-	if len(results4.Connections) > 0 {
+	if len(results.Connections) > 0 {
 		fmt.Print("List 10 connection names:\n")
-		for _, c := range results4.Connections {
+		for _, c := range results.Connections {
 			names := c.Names
 			if len(names) > 0 {
 				name := names[0].DisplayName
@@ -74,6 +75,7 @@ func main() {
 	} else {
 		fmt.Print("No connections found.\n")
 	}
+	return results.Connections, err
 }
 
 func parseCardToPerson(card vcard.Card) people.Person {
