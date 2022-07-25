@@ -45,17 +45,15 @@ func main() {
 	}
 	fmt.Printf("results1: %v\n", results1)
 
-	y := people.ModifyContactGroupMembersRequest{
-		ResourceNamesToAdd:    []string{results3.ResourceName},
-		ResourceNamesToRemove: []string{},
-		ForceSendFields:       []string{},
-		NullFields:            []string{},
-	}
-	results2, err := peopleService.ContactGroups.Members.Modify(results1.ResourceName, &y).Do()
+}
+
+func createSingleContact(peopleService *people.Service, contact *people.Person) (*people.Person, error) {
+	results, err := peopleService.People.CreateContact(contact).Do()
 	if err != nil {
-		log.Fatalf("Unable to apply label to contacts. %v", err)
+		log.Fatalf("Unable to create contact. %v", err)
 	}
-	fmt.Printf("results1: %v\n", results2)
+	return results, err
+}
 
 func listConnections(peopleService *people.Service) ([]*people.Person, error) {
 	results, err := peopleService.People.Connections.List("people/me").PageSize(10).
