@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"time"
 
@@ -43,10 +44,24 @@ func main() {
 		log.Fatalf("Unable to create people Client %v", err)
 	}
 
-	results3, err := peopleService.People.CreateContact(&contact).Do()
-	if err != nil {
-		log.Fatalf("Unable to create contact. %v", err)
+	createdContacts := make([]*people.PersonResponse, 0)
+	const batchSize int = 200
+	for low := 0; low < len(contacts); low += batchSize {
+		high := int(math.Min(float64(low + batchSize), float64(len(contacts))))
+		
+		request := people.BatchCreateContactsRequest{
+			Contacts:        contacts[low:high],
+			ReadMask:        "names",
+		}
+		result, err := peopleService.People.BatchCreateContacts(&request).Fields().Do()
+		if err != nil {
+			log.Printf("result.HTTPStatusCode: %v\n", result.HTTPStatusCode)
+			log.Fatalf("Unable to create contacts. %v", err)
+		}
+		createdContacts = append(createdContacts, result.CreatedPeople...)
+		fmt.Printf("results1: %v\n", result.CreatedPeople)
 	}
+	
 	fmt.Printf("result.HTTPStatusCode: %v\n", results3.HTTPStatusCode)
 	x := people.CreateContactGroupRequest{ContactGroup: &people.ContactGroup{Name: "Created: " + time.Now().Format(time.Kitchen)}}
 	results1, err := peopleService.ContactGroups.Create(&x).Do()
