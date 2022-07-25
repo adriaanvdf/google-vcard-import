@@ -62,6 +62,11 @@ func main() {
 		fmt.Printf("results1: %v\n", result.CreatedPeople)
 	}
 	
+	resourceNames := make([]string, len(createdContacts))
+	for i, person := range createdContacts {
+		resourceNames[i] = person.RequestedResourceName
+	}
+
 	labelRequest := people.CreateContactGroupRequest{ContactGroup: &people.ContactGroup{Name: "Imported vCard: " + time.Now().Format(time.Kitchen)}}
 	labelRequestResponse, err := peopleService.ContactGroups.Create(&labelRequest).Do()
 	if err != nil {
@@ -69,6 +74,13 @@ func main() {
 	}
 	fmt.Printf("Created label: %v\n", labelRequestResponse.FormattedName)
 
+
+	tagLabelRequest := people.ModifyContactGroupMembersRequest{ResourceNamesToAdd: resourceNames}
+	taggingResponse, err := peopleService.ContactGroups.Members.Modify(labelRequestResponse.ResourceName, &tagLabelRequest).Do()
+	if err != nil {
+		log.Fatalf("Unable to apply label to contacts. %v", err)
+	}
+	fmt.Printf("results1: %v\n", taggingResponse)
 
 }
 
