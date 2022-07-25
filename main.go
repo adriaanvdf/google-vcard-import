@@ -62,13 +62,13 @@ func main() {
 		fmt.Printf("results1: %v\n", result.CreatedPeople)
 	}
 	
-	fmt.Printf("result.HTTPStatusCode: %v\n", results3.HTTPStatusCode)
-	x := people.CreateContactGroupRequest{ContactGroup: &people.ContactGroup{Name: "Created: " + time.Now().Format(time.Kitchen)}}
-	results1, err := peopleService.ContactGroups.Create(&x).Do()
+	labelRequest := people.CreateContactGroupRequest{ContactGroup: &people.ContactGroup{Name: "Imported vCard: " + time.Now().Format(time.Kitchen)}}
+	labelRequestResponse, err := peopleService.ContactGroups.Create(&labelRequest).Do()
 	if err != nil {
 		log.Fatalf("Unable to create contacts label. %v", err)
 	}
-	fmt.Printf("results1: %v\n", results1)
+	fmt.Printf("Created label: %v\n", labelRequestResponse.FormattedName)
+
 
 }
 
