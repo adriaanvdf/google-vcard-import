@@ -15,16 +15,26 @@ import (
 )
 
 func main() {
-	card, err := readVcardFromFile("/Users/adriaan/workspace/google-vcard-import/example.vcf")
-	fmt.Printf("card: %v\n", card)
+	const path = "/Users/adriaan/workspace/facebook-vcard-exporter/db/vcards/"
+	fileOrFolder, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
-	}	
-	contact := parseCardToPerson(card)
+	}
+	files, err := fileOrFolder.ReadDir(0)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	
+	contacts := make([]*people.ContactToCreate, len(files))
 
-	fmt.Printf("contact: %v\n", contact)
+	for i, file := range files {
+		card, err := readVcardFromFile(path + file.Name())
+		if err != nil {
+			log.Fatal(err)
+		}
+		person := parseCardToPerson(card)
+		contacts[i] = &people.ContactToCreate{ContactPerson: &person}
+	}
 
 	myClient := client.GetClient("credentials.json", people.ContactsScope)
 
