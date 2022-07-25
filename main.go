@@ -11,7 +11,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/api/people/v1"
 
-	"vdfeltz.com/workspace/google-vcard-import/client"
+	"google-vcard-import/client"
 )
 
 func main() {
