@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"math"
 	"os"
@@ -16,20 +18,26 @@ import (
 )
 
 func main() {
-	const path = "/Users/adriaan/workspace/facebook-vcard-exporter/db/vcards/"
-	fileOrFolder, err := os.Open(path)
+	var examplePath string = "example.vcf"
+	var pathString = flag.String("p", examplePath, "The path to the vCard file or folder with vCard files to import")
+	flag.Parse()
+	
+	var files []string
+	var contacts []*people.ContactToCreate
+
+	path, err := os.Stat(*pathString)
+	if err == nil && path.IsDir() {
+		files, err = listFilePathsInDir(pathString)
+	} else if err == nil && !path.IsDir() {
+		files = append(files, *pathString)
+	} 
 	if err != nil {
-		log.Fatal(err)
-	}
-	files, err := fileOrFolder.ReadDir(0)
-	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to open provided path. %v", err)
 	}
 
-	contacts := make([]*people.ContactToCreate, len(files))
-
+	contacts = make([]*people.ContactToCreate, len(files))
 	for i, file := range files {
-		card, err := readVcardFromFile(path + file.Name())
+		card, err := readVcardFromFile(file)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -59,7 +67,6 @@ func main() {
 			log.Fatalf("Unable to create contacts. %v", err)
 		}
 		createdContacts = append(createdContacts, result.CreatedPeople...)
-		fmt.Printf("results1: %v\n", result.CreatedPeople)
 	}
 	
 	resourceNames := make([]string, len(createdContacts))
@@ -74,7 +81,6 @@ func main() {
 	}
 	fmt.Printf("Created label: %v\n", labelRequestResponse.FormattedName)
 
-
 	tagLabelRequest := people.ModifyContactGroupMembersRequest{ResourceNamesToAdd: resourceNames}
 	taggingResponse, err := peopleService.ContactGroups.Members.Modify(labelRequestResponse.ResourceName, &tagLabelRequest).Do()
 	if err != nil {
@@ -83,6 +89,23 @@ func main() {
 	fmt.Printf("Applied label to created contacts. Statuscode: %v", taggingResponse.HTTPStatusCode)
 }
 
+func listFilePathsInDir(path *string) ([]string, error) {
+	var entries []fs.DirEntry
+	var filePaths []string
+	dir, err := os.Open(*path)
+	if err != nil {
+		log.Fatalf("Unable to open path. %v", err)
+	}
+	defer dir.Close()
+	entries, err = dir.ReadDir(0)
+	for _, entry := range entries {
+		if entry.Type().IsRegular() {
+			filePath := dir.Name() + entry.Name()
+			filePaths = append(filePaths, filePath)
+		}
+	}
+
+	return filePaths, err
 }
 
 func createSingleContact(peopleService *people.Service, contact *people.Person) (*people.Person, error) {
