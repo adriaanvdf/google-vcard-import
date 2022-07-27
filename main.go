@@ -80,7 +80,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to apply label to contacts. %v", err)
 	}
-	fmt.Printf("results1: %v\n", taggingResponse)
+	fmt.Printf("Applied label to created contacts. Statuscode: %v", taggingResponse.HTTPStatusCode)
+}
 
 }
 
