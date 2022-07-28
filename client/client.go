@@ -14,7 +14,7 @@ import (
 )
 
 // Retrieve a token, saves the token, then returns the generated client.
-func GetClient(credsfile string, scope string) *http.Client {
+func New(credsfile string, scope string) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
 	// time.
